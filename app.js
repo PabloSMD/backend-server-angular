@@ -4,12 +4,12 @@ const mysql = require('mysql');
 const bodyParser = require ('body-parser');
 
 const fileUpload = require('express-fileupload');
-app.use(fileUpload());
-
 
 
 //Inicializar variables
 var app= express();
+
+app.use(fileUpload());
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
@@ -68,7 +68,7 @@ app.put('/upload/producto/:id', (req, res) => {
             errors: {message: 'Debe seleccionar una imagen'}
         });
     }
-    
+
     //Obtener nombre del archivo
     let archivo = req.files.imagen;
     let nombreCortado = archivo.name.split('.');
@@ -84,7 +84,29 @@ app.put('/upload/producto/:id', (req, res) => {
             errors: { message: 'Las extensiones válidas son' + extensionesValidas.join(',')}
         });
     };
-})
+
+    // Nombre de archivo personalizado
+    let nombreArchivo = `${id}-${new Date().getMilliseconds()}.${extensionArchivo}`;
+
+    //Mover el archivo del temporal a un path
+    let path = `./uploads/productos/${nombreArchivo}`;
+
+    console.log(path);
+
+    archivo.mv(path, err => {
+        if (err) {
+            return res.status (500).json({
+                ok: false,
+                mensaje: 'Error al mover archivo',
+                errors: err
+            });
+        }
+        return res.status(200).json({
+            ok: true,
+            mensaje: 'petición realizada correctamente'
+        });
+    })
+});
 
 //Recuperar todos los productos
 app.get('/productos', function (req, res) {
