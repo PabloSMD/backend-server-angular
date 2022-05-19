@@ -5,6 +5,15 @@ const bodyParser = require ('body-parser');
 
 const fileUpload = require('express-fileupload');
 
+// CORS Middleware 
+app.use(function (req, res, next) {
+    //Enabling CORS
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    res.header ("Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, x-client-key, x-client-token, x-client-secret,Authorization");
+    next();
+});
 
 //Inicializar variables
 var app= express();
@@ -56,6 +65,35 @@ app.post('/producto', function (req, res) {
         });
         
     }
+});
+//Borrar un producto 
+app.delete ('/producto/:id', function (req, res) {
+    let id = req.params.id;
+    if (mc) {
+        console.log(id);
+        mc.query("DELETE FROM products WHERE productId = ?", id, function (error, result) {
+            if (error) {
+                return res.status(500).json({"Mensaje": "Error"});
+            }
+            else {
+                return res.status(200).json({ "Mensaje": "Registro con id=" + id + "Borrado"});
+            }
+        });
+    }
+});
+// Actualizar un producto 
+app.put('/producto/:id', (req, res) => {
+    let id = req.params.id;
+    let producto = req.body;
+    console.log(id);
+    console.log(producto);
+    if (!id || !producto) {
+        return res.status(400).send ({ error: producto, message: 'Debe proveer un id y los datos de un producto'});
+    }
+    mc.query("UPDATE productos SET ? WHERE productId = ?", [producto, id], function (error, results, fields) {
+        if (error) throw error;
+        return res.status(200).json({"Mensaje": "Registro con id=" + id + "ha sido actualizado" });
+    });
 });
 
 // Actualizar la imagen de un producto
